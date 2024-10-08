@@ -33,6 +33,8 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   late AudioPlayer _trapPlayer; // For trap sound
   late AudioPlayer _successPlayer; // For success sound
 
+  bool hasWon = false; // To track if the player has won
+
   @override
   void initState() {
     super.initState();
@@ -78,8 +80,8 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   // Function to play background music in a loop
   Future<void> _startBackgroundMusic() async {
     try {
-      await _audioPlayer
-          .setAsset('assets/halloween_bg.mp3'); // Set background music file
+      await _audioPlayer.setAsset(
+          'assets/sounds/halloween_bg.mp3'); // Set background music file
       _audioPlayer.setLoopMode(LoopMode.one); // Loop the music
       _audioPlayer.play(); // Play the music
     } catch (e) {
@@ -90,7 +92,7 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   // Function to play the trap sound
   Future<void> _playTrapSound() async {
     try {
-      await _trapPlayer.setAsset('assets/scary.mp3');
+      await _trapPlayer.setAsset('assets/sounds/scary.mp3');
       _trapPlayer.play();
     } catch (e) {
       print("Error playing trap sound: $e");
@@ -100,11 +102,43 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   // Function to play the success sound
   Future<void> _playSuccessSound() async {
     try {
-      await _successPlayer.setAsset('assets/happy.mp3');
+      await _successPlayer.setAsset('assets/sounds/success.mp3');
       _successPlayer.play();
     } catch (e) {
       print("Error playing success sound: $e");
     }
+  }
+
+  // Function to show the winning message and play success sound
+  void _showSuccessDialog() {
+    _playSuccessSound(); // Play the success sound
+
+    showDialog(
+      context: context,
+      builder: (BuildContext context) {
+        return AlertDialog(
+          title: Text("You Found It!"),
+          content:
+              Text("Congratulations! You successfully found the correct item."),
+          actions: [
+            TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+                _resetGame(); // Reset the game for replay
+              },
+              child: Text("Play Again"),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
+  // Function to reset the game
+  void _resetGame() {
+    setState(() {
+      hasWon = false; // Reset the winning flag
+    });
   }
 
   // Function to show the trap alert dialog
@@ -156,7 +190,10 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
                 left: 50,
                 child: GestureDetector(
                   onTap: () {
-                    _showTrapDialog(context, "You encountered a spooky ghost!");
+                    if (!hasWon) {
+                      _showTrapDialog(
+                          context, "You encountered a spooky ghost!");
+                    }
                   },
                   child: Image.asset(
                     'assets/ghost.png',
@@ -168,16 +205,18 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
             },
           ),
 
-          // Pumpkin (Safe - Success)
+          // Pumpkin (Safe - Correct Item)
           Positioned(
             bottom: 100,
             right: 50,
             child: GestureDetector(
               onTap: () {
-                _playSuccessSound(); // Play success sound
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text("Pumpkin is safe!")),
-                );
+                if (!hasWon) {
+                  setState(() {
+                    hasWon = true; // Mark the game as won
+                  });
+                  _showSuccessDialog(); // Show success dialog and play sound
+                }
               },
               child: Image.asset(
                 'assets/pumpkin.png',
@@ -196,7 +235,9 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
                 right: 50 + _batsAnimation.value,
                 child: GestureDetector(
                   onTap: () {
-                    _showTrapDialog(context, "You got caught by the bats!");
+                    if (!hasWon) {
+                      _showTrapDialog(context, "You got caught by the bats!");
+                    }
                   },
                   child: Image.asset(
                     'assets/bats.png',
@@ -214,7 +255,9 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
             left: 50,
             child: GestureDetector(
               onTap: () {
-                _showTrapDialog(context, "Beware! The candy is a trick!");
+                if (!hasWon) {
+                  _showTrapDialog(context, "Beware! The candy is a trick!");
+                }
               },
               child: Image.asset(
                 'assets/candy.png',
