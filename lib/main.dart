@@ -1,5 +1,6 @@
 import 'dart:math'; // For random movement
 import 'package:flutter/material.dart';
+import 'package:just_audio/just_audio.dart'; // For audio playback
 
 void main() {
   runApp(SpookyGameApp());
@@ -28,10 +29,20 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   late Animation<double> _ghostAnimation;
   late Animation<double> _batsAnimation;
   Random random = Random();
+  late AudioPlayer _audioPlayer; // For background music
+  late AudioPlayer _trapPlayer; // For trap sound
+  late AudioPlayer _successPlayer; // For success sound
 
   @override
   void initState() {
     super.initState();
+
+    // Initialize audio players
+    _audioPlayer = AudioPlayer();
+    _trapPlayer = AudioPlayer();
+    _successPlayer = AudioPlayer();
+
+    _startBackgroundMusic(); // Start playing background music
 
     // Animation Controller for Ghost (floating up and down)
     _ghostController = AnimationController(
@@ -58,11 +69,47 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
   void dispose() {
     _ghostController.dispose();
     _batsController.dispose();
+    _audioPlayer.dispose(); // Dispose background music player
+    _trapPlayer.dispose(); // Dispose trap sound player
+    _successPlayer.dispose(); // Dispose success sound player
     super.dispose();
+  }
+
+  // Function to play background music in a loop
+  Future<void> _startBackgroundMusic() async {
+    try {
+      await _audioPlayer
+          .setAsset('assets/halloween_bg.mp3'); // Set background music file
+      _audioPlayer.setLoopMode(LoopMode.one); // Loop the music
+      _audioPlayer.play(); // Play the music
+    } catch (e) {
+      print("Error playing audio: $e");
+    }
+  }
+
+  // Function to play the trap sound
+  Future<void> _playTrapSound() async {
+    try {
+      await _trapPlayer.setAsset('assets/scary.mp3');
+      _trapPlayer.play();
+    } catch (e) {
+      print("Error playing trap sound: $e");
+    }
+  }
+
+  // Function to play the success sound
+  Future<void> _playSuccessSound() async {
+    try {
+      await _successPlayer.setAsset('assets/happy.mp3');
+      _successPlayer.play();
+    } catch (e) {
+      print("Error playing success sound: $e");
+    }
   }
 
   // Function to show the trap alert dialog
   void _showTrapDialog(BuildContext context, String message) {
+    _playTrapSound(); // Play the trap sound
     showDialog(
       context: context,
       builder: (BuildContext context) {
@@ -121,12 +168,13 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
             },
           ),
 
-          // Pumpkin (Safe)
+          // Pumpkin (Safe - Success)
           Positioned(
             bottom: 100,
             right: 50,
             child: GestureDetector(
               onTap: () {
+                _playSuccessSound(); // Play success sound
                 ScaffoldMessenger.of(context).showSnackBar(
                   SnackBar(content: Text("Pumpkin is safe!")),
                 );
