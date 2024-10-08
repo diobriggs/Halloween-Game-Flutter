@@ -84,14 +84,19 @@ class _SpookyGameScreenState extends State<SpookyGameScreen>
 
   @override
   Widget build(BuildContext context) {
+    // Get the screen size using MediaQuery
+    final screenSize = MediaQuery.of(context).size;
+
     return Scaffold(
       body: Stack(
         children: [
-          // Background Image
-          Positioned.fill(
+          // Background Image that scales to fit the screen size
+          Container(
+            width: screenSize.width,
+            height: screenSize.height,
             child: Image.asset(
-              'assets/background.png',
-              fit: BoxFit.cover,
+              'assets/hal_background.png',
+              fit: BoxFit.fill, // Ensure the image fills the screen
             ),
           ),
 
