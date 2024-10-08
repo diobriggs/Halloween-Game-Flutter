@@ -1,3 +1,8 @@
+// Group Members
+// 1. Abhiram Gelle
+// 2. Dio Briggs
+// GitHub Link: https://github.com/diobriggs/Halloween-Game-Flutter
+
 import 'dart:math'; // For random movement
 import 'package:flutter/material.dart';
 import 'package:just_audio/just_audio.dart'; // For audio playback
